@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CRM - Sistema de Gerenciamento de Relacionamento</title>
+    <meta name="description" content="Sistema completo de CRM para gerenciar contatos, leads e oportunidades de negócio" />
+    
+    <!-- 💡 Script que aplica dark mode ANTES do React carregar -->
+    <script>
+      try {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark' || theme === null) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (_) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
