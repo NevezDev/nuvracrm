@@ -29,12 +29,13 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Copia apenas os artefatos necessários para servir
+# Copia dist e config de preview
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/vite.preview.config.js ./
 
 # Instala vite CLI global para servir o build
 RUN npm i -g vite@5
 
 # Porta padrão do vite preview é 4173, mas respeita $PORT do PaaS
 EXPOSE 4173
-CMD ["sh", "-c", "vite preview --host --port ${PORT:-4173}"]
+CMD ["sh", "-c", "vite preview --host --port ${PORT:-4173} --config vite.preview.config.js"]
