@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
@@ -15,7 +15,7 @@ export default defineConfig({
     host: true,
   },
   preview: {
+    allowedHosts: ['nuvra-nuvracrm.3kuf6w.easypanel.host'],
     host: true,
-    allowedHosts: ['nuvra-nuvracrm.3kuf6w.easypanel.host', '.easypanel.host'],
   },
 })
