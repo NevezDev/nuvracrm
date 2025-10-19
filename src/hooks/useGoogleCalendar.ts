@@ -97,8 +97,12 @@ export const useGoogleCalendar = () => {
 
   // Conectar com Google Calendar
   const connect = useCallback(() => {
-    const authUrl = googleService.getAuthUrl();
-    window.location.href = authUrl;
+    try {
+      const authUrl = googleService.getAuthUrl();
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error('Erro ao gerar URL de autorização:', error);
+    }
   }, [googleService]);
 
   // Desconectar

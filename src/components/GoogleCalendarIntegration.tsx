@@ -53,8 +53,12 @@ const GoogleCalendarIntegration: React.FC<GoogleCalendarIntegrationProps> = ({ o
   };
 
   const handleConnect = () => {
-    const authUrl = googleService.getAuthUrl();
-    window.location.href = authUrl;
+    try {
+      const authUrl = googleService.getAuthUrl();
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error('Erro ao gerar URL de autorização:', error);
+    }
   };
 
   const handleDisconnect = async () => {
