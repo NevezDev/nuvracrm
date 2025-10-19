@@ -26,6 +26,8 @@ interface CreateEventData {
   attendees?: string[];
 }
 
+import { supabase } from '../lib/supabase';
+
 class GoogleCalendarService {
   private clientId: string;
   private clientSecret: string;
@@ -79,10 +81,12 @@ class GoogleCalendarService {
     if (!this.clientId || !this.redirectUri) {
       throw new Error('Configuração do Google Calendar incompleta. Verifique VITE_GOOGLE_CLIENT_ID e VITE_GOOGLE_REDIRECT_URI');
     }
+
     const scopes = [
       'https://www.googleapis.com/auth/calendar',
       'https://www.googleapis.com/auth/calendar.events'
     ];
+
     const params = new URLSearchParams({
       client_id: this.clientId,
       redirect_uri: this.redirectUri,
@@ -91,7 +95,10 @@ class GoogleCalendarService {
       access_type: 'offline',
       prompt: 'consent'
     });
-    return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+    console.log('Google OAuth auth URL:', url);
+    return url;
   }
 
   // Processar código de autorização
@@ -100,6 +107,7 @@ class GoogleCalendarService {
     if (!session?.access_token) {
       throw new Error('Usuário não autenticado');
     }
+
     const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google_calendar_oauth`;
     const response = await fetch(functionUrl, {
       method: 'POST',
@@ -109,18 +117,22 @@ class GoogleCalendarService {
       },
       body: JSON.stringify({ code, redirect_uri: this.redirectUri }),
     });
+
     if (!response.ok) {
       const errText = await response.text();
       throw new Error(errText || 'Erro ao processar autorização');
     }
+
     const result = await response.json();
     this.accessToken = result.access_token;
+
     const tokenData = {
       access_token: result.access_token,
       expires_in: result.expires_in,
       expires_at: Date.now() + (result.expires_in * 1000),
       token_type: result.token_type || 'Bearer',
     };
+
     localStorage.setItem('google_calendar_token', JSON.stringify(tokenData));
     return true;
   }
