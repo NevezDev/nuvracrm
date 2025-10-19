@@ -12,4 +12,8 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    host: true,
+    allowedHosts: ['nuvra-nuvracrm.3kuf6w.easypanel.host'],
+  },
 })
