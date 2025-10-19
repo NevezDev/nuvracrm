@@ -47,20 +47,15 @@ class GoogleCalendarService {
 
   // Método para verificar configuração
   isConfigured(): boolean {
-    return !!(this.clientId && this.clientSecret && this.redirectUri);
+    return !!(this.clientId && this.redirectUri);
   }
 
   // Método para obter status da configuração
   getConfigStatus(): { configured: boolean; missing: string[] } {
-    const missing = [];
+    const missing: string[] = [];
     if (!this.clientId) missing.push('VITE_GOOGLE_CLIENT_ID');
-    if (!this.clientSecret) missing.push('VITE_GOOGLE_CLIENT_SECRET');
     if (!this.redirectUri) missing.push('VITE_GOOGLE_REDIRECT_URI');
-    
-    return {
-      configured: missing.length === 0,
-      missing
-    };
+    return { configured: missing.length === 0, missing };
   }
 
   // Inicializar autenticação
@@ -81,16 +76,13 @@ class GoogleCalendarService {
 
   // Obter URL de autorização
   getAuthUrl(): string {
-    // Verificar se as variáveis de ambiente estão configuradas
-    if (!this.clientId || !this.clientSecret || !this.redirectUri) {
-      throw new Error('Configuração do Google Calendar incompleta. Verifique as variáveis de ambiente: VITE_GOOGLE_CLIENT_ID, VITE_GOOGLE_CLIENT_SECRET, VITE_GOOGLE_REDIRECT_URI');
+    if (!this.clientId || !this.redirectUri) {
+      throw new Error('Configuração do Google Calendar incompleta. Verifique VITE_GOOGLE_CLIENT_ID e VITE_GOOGLE_REDIRECT_URI');
     }
-
     const scopes = [
       'https://www.googleapis.com/auth/calendar',
       'https://www.googleapis.com/auth/calendar.events'
     ];
-
     const params = new URLSearchParams({
       client_id: this.clientId,
       redirect_uri: this.redirectUri,
@@ -99,52 +91,38 @@ class GoogleCalendarService {
       access_type: 'offline',
       prompt: 'consent'
     });
-
     return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
   }
 
   // Processar código de autorização
   async handleAuthCode(code: string): Promise<boolean> {
-    try {
-      const response = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          client_id: this.clientId,
-          client_secret: this.clientSecret,
-          code: code,
-          grant_type: 'authorization_code',
-          redirect_uri: this.redirectUri,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Erro na resposta do Google:', errorData);
-        throw new Error('Erro na troca de código por token');
-      }
-
-      const tokens = await response.json();
-      this.accessToken = tokens.access_token;
-      
-      // Salvar token com informações de expiração
-      const tokenData = {
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-        expires_in: tokens.expires_in,
-        expires_at: Date.now() + (tokens.expires_in * 1000), // Converter para timestamp
-        token_type: tokens.token_type
-      };
-      
-      localStorage.setItem('google_calendar_token', JSON.stringify(tokenData));
-      console.log('Token salvo com sucesso:', tokenData);
-      return true;
-    } catch (error) {
-      console.error('Erro ao processar código de autorização:', error);
-      return false;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      throw new Error('Usuário não autenticado');
     }
+    const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google_calendar_oauth`;
+    const response = await fetch(functionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ code, redirect_uri: this.redirectUri }),
+    });
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(errText || 'Erro ao processar autorização');
+    }
+    const result = await response.json();
+    this.accessToken = result.access_token;
+    const tokenData = {
+      access_token: result.access_token,
+      expires_in: result.expires_in,
+      expires_at: Date.now() + (result.expires_in * 1000),
+      token_type: result.token_type || 'Bearer',
+    };
+    localStorage.setItem('google_calendar_token', JSON.stringify(tokenData));
+    return true;
   }
 
   // Verificar se está autenticado
@@ -354,4 +332,4 @@ class GoogleCalendarService {
 }
 
 export const googleCalendarService = new GoogleCalendarService();
-export type { GoogleCalendarEvent, CreateEventData }; 
+export type { GoogleCalendarEvent, CreateEventData };
