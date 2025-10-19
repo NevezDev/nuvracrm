@@ -11,9 +11,11 @@ export default defineConfig({
         rewrite: path => path.replace(/^\/chatwoot-api/, ''),
       },
     },
+    allowedHosts: ['nuvra-nuvracrm.3kuf6w.easypanel.host', '.easypanel.host'],
+    host: true,
   },
   preview: {
     host: true,
-    allowedHosts: ['nuvra-nuvracrm.3kuf6w.easypanel.host'],
+    allowedHosts: ['nuvra-nuvracrm.3kuf6w.easypanel.host', '.easypanel.host'],
   },
 })
