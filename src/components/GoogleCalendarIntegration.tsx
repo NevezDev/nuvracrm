@@ -53,13 +53,7 @@ const GoogleCalendarIntegration: React.FC<GoogleCalendarIntegrationProps> = ({ o
   };
 
   const handleConnect = () => {
-    // Redirecionar para OAuth do Google
-    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || 'your-google-client-id';
-    const redirectUri = `${window.location.origin}/google-callback`;
-    const scope = 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events';
-    
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code&access_type=offline&prompt=consent`;
-    
+    const authUrl = googleService.getAuthUrl();
     window.location.href = authUrl;
   };
 
@@ -288,4 +282,4 @@ const GoogleCalendarIntegration: React.FC<GoogleCalendarIntegrationProps> = ({ o
   );
 };
 
-export default GoogleCalendarIntegration; 
+export default GoogleCalendarIntegration;

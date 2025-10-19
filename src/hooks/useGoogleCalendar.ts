@@ -97,14 +97,9 @@ export const useGoogleCalendar = () => {
 
   // Conectar com Google Calendar
   const connect = useCallback(() => {
-    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || 'your-google-client-id';
-    const redirectUri = `${window.location.origin}/google-callback`;
-    const scope = 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events';
-    
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code&access_type=offline&prompt=consent`;
-    
+    const authUrl = googleService.getAuthUrl();
     window.location.href = authUrl;
-  }, []);
+  }, [googleService]);
 
   // Desconectar
   const disconnect = useCallback(async () => {
@@ -160,4 +155,4 @@ export const useGoogleCalendar = () => {
     changeCalendar,
     checkConnection,
   };
-}; 
+};
